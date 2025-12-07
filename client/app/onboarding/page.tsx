@@ -1,10 +1,12 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { FileUpload } from "@/components/ui/file-upload";
 import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 import { IconSquareRoundedX } from "@tabler/icons-react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { onboardingApi } from "@/lib/api/onboarding";
+import { toast } from "sonner";
 
 const loadingStates = [
   { text: "Uploading resume..." },
@@ -19,13 +21,31 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
 
-  const handleFileUpload = (uploadedFiles: File[]) => {
+  const handleFileUpload = useCallback(async (uploadedFiles: File[]) => {
+    if (uploadedFiles.length === 0) return;
+
     setFiles(uploadedFiles);
-    // Start the loading animation after file upload
-    if (uploadedFiles.length > 0) {
+
+    try {
+      // Upload the resume
+      const uploadResponse = await onboardingApi.uploadResume(uploadedFiles[0]);
+      console.log("Upload response:", uploadResponse);
+
+      // Start the loader animation
       setLoading(true);
+
+      // TODO: Poll for status updates or use WebSocket for real-time updates
+      // For now, the multi-step loader will animate through all steps
+    } catch (err) {
+      console.error("Upload failed:", err);
+      toast.error("Failed to upload resume. Please try again.");
+      setLoading(false);
     }
-  };
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setLoading(false);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -84,8 +104,8 @@ export default function OnboardingPage() {
       {/* Close Button */}
       {loading && (
         <button
-          className="fixed top-4 right-4 text-black dark:text-white z-[120]"
-          onClick={() => setLoading(false)}
+          className="fixed top-4 right-4 text-black dark:text-white z-120"
+          onClick={handleClose}
         >
           <IconSquareRoundedX className="h-10 w-10" />
         </button>
