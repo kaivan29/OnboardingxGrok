@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experience-Level Onboarding Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background: white;
+            margin-bottom: 15px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .upload-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .upload-label:hover {
+            background: #5568d3;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: white;
+            display: none;
+        }
+        
+        .result.success {
+            border-left: 4px solid #4caf50;
+        }
+        
+        .result.info {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .result pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .level-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .level-badge.junior {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .level-badge.senior {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Experience-Level Onboarding Test</h1>
+        <p class="subtitle">Test the automatic experience level detection and personalized study plan generation</p>
+        
+        <div class="test-section">
+            <h2>Test 1: Upload Resume & Auto-Generate Study Plan</h2>
+            <div class="upload-area">
+                <p style="margin-bottom: 15px;">📄 Upload a resume PDF to analyze</p>
+                <label for="resumeFile" class="upload-label">Choose Resume PDF</label>
+                <input type="file" id="resumeFile" accept=".pdf">
+                <p id="fileName" style="margin-top: 10px; color: #666;"></p>
+            </div>
+            <button id="uploadBtn" disabled>Analyze Resume & Generate Study Plan</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #666;">Analyzing resume and generating personalized plan...</p>
+            </div>
+            
+            <div class="result" id="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 2: Check Latest Codebase Analysis</h2>
+            <button onclick="checkCodebaseAnalysis()">View Latest RocksDB Analysis</button>
+            <div class="result" id="codebaseResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test 3: Trigger New Analysis</h2>
+            <button onclick="triggerAnalysis()">Generate Fresh Codebase Analysis</button>
+            <div class="result" id="triggerResult"></div>
+        </div>
+    </div>
+    
+    <script>
+        const fileInput = document.getElementById('resumeFile');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileName = document.getElementById('fileName');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileName.textContent = `Selected: ${e.target.files[0].name}`;
+                uploadBtn.disabled = false;
+            } else {
+                fileName.textContent = '';
+                uploadBtn.disabled = true;
+            }
+        });
+        
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('resume', file);
+            formData.append('candidate_email', 'test@example.com');
+            formData.append('repo_url', 'https://github.com/facebook/rocksdb');
+            formData.append('generate_plan', 'true');
+            
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            uploadBtn.disabled = true;
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/analyzeResume', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.className = 'result success';
+                
+                const expLevel = data.study_plan?.experience_level || 'unknown';
+                const levelBadge = `<span class="level-badge ${expLevel}">${expLevel.toUpperCase()}</span>`;
+                
+                result.innerHTML = `
+                    <strong>✅ Analysis Complete!</strong>
+                    <p>Profile ID: <code>${data.profile_id}</code></p>
+                    <p>Candidate: ${data.analysis.candidate_name}</p>
+                    <p>Experience: ${data.analysis.experience_years} years ${levelBadge}</p>
+                    <p>Study Plan Generated: ${data.study_plan ? 'Yes' : 'No'}</p>
+                    ${data.study_plan ? `<p>Plan uses: <strong>${expLevel.toUpperCase()}</strong> -level codebase analysis</p>` : ''}
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.className = 'result';
+                result.innerHTML = `<strong>❌ Error:</strong><p>${error.message}</p>`;
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        });
+        
+        async function checkCodebaseAnalysis() {
+            const resultDiv = document.getElementById('codebaseResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/codebases');
+                const data = await response.json();
+                
+                if (data.analyses && data.analyses.length > 0) {
+                    const latest = data.analyses[0];
+                    
+                    // Get the full analysis
+                    const detailRes = await fetch(`http://localhost:8080/api/codebases/${latest.analysis_id}`);
+                    const detail = await detailRes.json();
+                    
+                    const hasMultiLevel = detail.analysis?.metadata?.includes_prompts;
+                    const levels = detail.analysis?.metadata?.experience_levels || [];
+                    
+                    resultDiv.innerHTML = `
+                        <strong>📊 Latest Analysis</strong>
+                        <p>Repository: ${latest.repo_name}</p>
+                        <p>Analyzed: ${new Date(latest.analyzed_at).toLocaleString()}</p>
+                        <p>Multi-level: ${hasMultiLevel ? '✅ Yes' : '❌ No'}</p>
+                        <p>Experience Levels: ${levels.join(', ')}</p>
+                        <p>Chapters: ${latest.chapters_count}</p>
+                        <pre>${JSON.stringify(detail.analysis?.metadata || {}, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<p>No analyses found</p>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>❌ Error:</strong><p>${error.message}</p>`;
+            }
+        }
+        
+        async function triggerAnalysis() {
+            const resultDiv = document.getElementById('triggerResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            resultDiv.innerHTML = '<p>Triggering analysis...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/codebases/trigger', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <strong>✅ ${data.message}</strong>
+                    <p>Check the console logs to see junior/senior analyses being generated.</p>
+                    <p>Use "Check Latest Analysis" button above to verify the results.</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>❌ Error:</strong><p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

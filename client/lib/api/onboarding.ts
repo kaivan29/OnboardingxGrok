@@ -45,6 +45,29 @@ export interface ProcessingStatus {
   };
 }
 
+export interface StudyPlan {
+  success: boolean;
+  profile_id: string;
+  repo_url: string;
+  plan_id: string;
+  duration_weeks: number;
+  plan: {
+    weeks: any[];
+  };
+}
+
+export interface UserProfile {
+  profile_id: string;
+  candidate_email?: string;
+  uploaded_at: string;
+  resume_filename: string;
+  analysis: {
+    candidate_name: string;
+    experience_years: number;
+    [key: string]: any;
+  };
+}
+
 // API endpoints for onboarding
 export const onboardingApi = {
   /**
@@ -83,5 +106,31 @@ export const onboardingApi = {
       stepName: "Initializing",
       status: "processing",
     };
+  },
+
+  /**
+   * Get study plan by profile ID or plan ID
+   * @param params - Either profile_id or plan_id
+   * @returns Study plan data
+   */
+  getStudyPlan: async (params: { profile_id?: string; plan_id?: string }): Promise<StudyPlan> => {
+    if (params.plan_id) {
+      const response = await api.get<StudyPlan>(`/getStudyPlan/${params.plan_id}`);
+      return response.data;
+    } else if (params.profile_id) {
+      const response = await api.get<StudyPlan>(`/getStudyPlanByProfile/${params.profile_id}`);
+      return response.data;
+    }
+    throw new Error("Either profile_id or plan_id must be provided");
+  },
+
+  /**
+   * Get user profile by profile ID
+   * @param profile_id - The profile ID
+   * @returns User profile with analysis
+   */
+  getProfile: async (profile_id: string): Promise<UserProfile> => {
+    const response = await api.get<UserProfile>(`/getProfile/${profile_id}`);
+    return response.data;
   }
 };

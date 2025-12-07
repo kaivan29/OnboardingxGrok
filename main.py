@@ -401,7 +401,38 @@ async def get_profile(profile_id: str):
         )
 
 
-@app.get("/api/getStudyPlan/{profile_id}")
+@app.get("/api/getStudyPlan/{plan_id}")
+async def get_study_plan(plan_id: str):
+    """
+    Get a specific study plan by its ID.
+    
+    Args:
+        plan_id: The unique plan identifier (full plan ID)
+    
+    Returns:
+        Study plan data
+    """
+    plans_dir = Path("data/study_plans")
+    plan_path = plans_dir / f"{plan_id}.json"
+    
+    if not plan_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Study plan not found: {plan_id}"
+        )
+    
+    try:
+        with open(plan_path, 'r') as f:
+            plan_data = json.load(f)
+        return plan_data
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load study plan: {str(e)}"
+        )
+
+
+@app.get("/api/getStudyPlanByProfile/{profile_id}")
 async def get_study_plan_by_profile(profile_id: str):
     """
     Get the latest study plan for a profile.
@@ -427,37 +458,6 @@ async def get_study_plan_by_profile(profile_id: str):
     # Return the most recent plan
     try:
         with open(plans[0], 'r') as f:
-            plan_data = json.load(f)
-        return plan_data
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to load study plan: {str(e)}"
-        )
-
-
-@app.get("/api/getStudyPlanById/{plan_id}")
-async def get_study_plan_by_id(plan_id: str):
-    """
-    Get a specific study plan by its ID.
-    
-    Args:
-        plan_id: The unique plan identifier
-    
-    Returns:
-        Study plan data
-    """
-    plans_dir = Path("data/study_plans")
-    plan_path = plans_dir / f"{plan_id}.json"
-    
-    if not plan_path.exists():
-        raise HTTPException(
-            status_code=404,
-            detail=f"Study plan not found: {plan_id}"
-        )
-    
-    try:
-        with open(plan_path, 'r') as f:
             plan_data = json.load(f)
         return plan_data
     except Exception as e:

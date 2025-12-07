@@ -82,7 +82,7 @@ class StudyPlanGenerator:
             print(f"Error loading codebase analysis: {e}")
             return None
     
-    async def generate_plan_with_grok(
+    def generate_plan_with_grok(
         self,
         profile: Dict,
         codebase: Dict,
@@ -164,8 +164,8 @@ Return ONLY valid JSON, no additional text."""
 
         # Call Grok API
         try:
-            response = await self.grok_client.client.chat.completions.create(
-                model=self.grok_client.model,
+            response = self.grok_client.chat.completions.create(
+                model=Config.XAI_MODEL,
                 messages=[
                     {
                         "role": "system",
@@ -194,6 +194,116 @@ Return ONLY valid JSON, no additional text."""
             
         except Exception as e:
             raise ValueError(f"Failed to generate plan with Grok: {str(e)}")
+
+    
+    def _transform_grok_curriculum_to_plan(
+        self,
+        curriculum: Dict,
+        profile: Dict,
+        duration_weeks: int = 4
+    ) -> Dict:
+        """
+        Transform Grok-generated curriculum into week-content.ts format.
+        
+        The Grok curriculum has:
+        - weeks[].reading_materials[]
+        - weeks[].quiz[]
+        - weeks[].coding_tasks[]
+        
+        We need to convert to:
+        - weeks[].chapters[]
+        - weeks[].tasks[]
+        - weeks[].overview
+        """
+        candidate_name = profile['analysis'].get('candidate_name', 'New Hire')
+        weeks = []
+        
+        for week_data in curriculum.get('weeks', [])[:duration_weeks]:
+            week_number = week_data.get('week_number', len(weeks) + 1)
+            
+            # Convert reading materials to chapters
+            chapters = []
+            for idx, reading in enumerate(week_data.get('reading_materials', [])):
+                chapter_id = f"chapter-{week_number}-{idx+1}"
+                
+                # Build chapter content from reading material
+                content = f"# {reading.get('file_path', 'Unknown File')}\n\n"
+                content += f"{reading.get('why_it_matters', '')}\n\n"
+                
+                if reading.get('concepts_taught'):
+                    content += "## Key Concepts\n\n"
+                    for concept in reading['concepts_taught']:
+                        content += f"- {concept}\n"
+                    content += "\n"
+                
+                if reading.get('key_functions'):
+                    content += "## Important Functions to Study\n\n"
+                    for func in reading['key_functions']:
+                        content += f"### `{func}()`\n\n"
+                        content += f"Study the implementation and behavior of this function.\n\n"
+                
+                # Create subItems from key_functions
+                sub_items = [
+                    {"id": func.lower().replace('::', '-').replace('_', '-'), "title": func}
+                    for func in reading.get('key_functions', [])[:5]
+                ]
+                
+                chapters.append({
+                    "id": chapter_id,
+                    "title": reading.get('file_path', f'Reading {idx+1}').split('/')[-1],  # Get filename only
+                    "content": content,
+                    "subItems": sub_items
+                })
+            
+            # Convert coding tasks to frontend task format
+            tasks = []
+            for task_idx, task_data in enumerate(week_data.get('coding_tasks', [])):
+                task_id = f"task-{week_number}-{task_idx+1}"
+                
+                tasks.append({
+                    "id": task_id,
+                    "title": task_data.get('title', f'Task {task_idx+1}'),
+                    "description": task_data.get('description', ''),
+                    "assignedBy": "Staff Engineer",
+                    "timeAgo": "Just now",
+                    "progress": 0,
+                    "hints": task_data.get('hints', []),
+                    "learningOutcomes": task_data.get('learning_outcomes', []),
+                    "difficulty": task_data.get('difficulty', 'medium')
+                })
+            
+            # Build overview from week goal and reading materials
+            overview = f"# Overview\n\n"
+            overview += f"Welcome to Week {week_number}, {candidate_name}!\n\n"
+            overview += f"**Goal:** {week_data.get('goal', 'Master key concepts')}\n\n"
+            overview += f"{week_data.get('title', f'Week {week_number}')}\n\n"
+            overview += "## Key takeaways\n\n"
+            
+            # Extract key takeaways from reading materials
+            for reading in week_data.get('reading_materials', [])[:3]:
+                for concept in reading.get('concepts_taught', [])[:2]:
+                    overview += f"- {concept}\n"
+            
+            # Determine week status
+            if week_number == 1:
+                status = "start"
+            elif week_number <= duration_weeks // 2:
+                status = "locked"
+            else:
+                status = "locked"
+            
+            weeks.append({
+                "weekId": week_number,
+                "title": week_data.get('title', f'Week {week_number}'),
+                "status": status,
+                "overview": overview,
+                "chapters": chapters,
+                "tasks": tasks,
+                "quiz": week_data.get('quiz', []),  # Pass through quiz data
+                "goal": week_data.get('goal', '')
+            })
+        
+        return {"weeks": weeks}
     
     def generate_fallback_plan(
         self,
@@ -497,14 +607,54 @@ Set concrete goals for your first 90 days and beyond.""",
             raise ValueError(f"Profile not found: {profile_id}")
         
         # Load codebase analysis
-        codebase = self.get_latest_codebase_analysis(repo_url)
-        if not codebase:
+        codebase_raw = self.get_latest_codebase_analysis(repo_url)
+        if not codebase_raw:
             raise ValueError(f"No codebase analysis found for: {repo_url}")
         
+        # Determine experience level from profile
+        from config_prompts import determine_experience_level
+        experience_level = determine_experience_level(profile)
+        
+        print(f"📊 Determined experience level: {experience_level}")
+        
+        # Select the appropriate codebase analysis based on experience level
+        codebase = codebase_raw
+        
+        # If the analysis has separate analyses by experience level, use the appropriate one
+        if "analyses" in codebase_raw and experience_level in codebase_raw["analyses"]:
+            print(f"✅ Using {experience_level}-specific codebase analysis")
+            # Get the level-specific analysis
+            level_analysis = codebase_raw["analyses"][experience_level]
+            
+            # Create a combined codebase dict with level-specific content
+            codebase = {
+                "repo_url": codebase_raw.get("repo_url"),
+                "analyzed_at": codebase_raw.get("analyzed_at"),
+                "summary": level_analysis.get("summary"),
+                "chapters": level_analysis.get("chapters"),
+                "knowledge_graph": level_analysis.get("knowledge_graph"),
+                "metadata": {
+                    **codebase_raw.get("metadata", {}),
+                    **level_analysis.get("metadata", {}),
+                    "selected_level": experience_level
+                }
+            }
+        else:
+            # Fallback to root-level analysis (backward compatible)
+            print(f"⚠️  Using default codebase analysis (no level-specific data found)")
+        
         # Generate plan
-        if use_ai and self.grok_client:
+        # First, check if we have Grok-generated curriculum in the codebase analysis
+        if 'curriculum' in codebase and 'weeks' in codebase.get('curriculum', {}):
+            print(f"📚 Using Grok-generated curriculum from codebase analysis")
+            plan = self._transform_grok_curriculum_to_plan(
+                curriculum=codebase['curriculum'],
+                profile=profile,
+                duration_weeks=duration_weeks
+            )
+        elif use_ai and self.grok_client:
             try:
-                plan = await self.generate_plan_with_grok(profile, codebase, duration_weeks)
+                plan = self.generate_plan_with_grok(profile, codebase, duration_weeks)
             except Exception as e:
                 print(f"AI generation failed, using fallback: {e}")
                 plan = self.generate_fallback_plan(profile, codebase, duration_weeks)
@@ -516,6 +666,7 @@ Set concrete goals for your first 90 days and beyond.""",
             "success": True,
             "profile_id": profile_id,
             "repo_url": repo_url,
+            "experience_level": experience_level,
             "generated_at": datetime.now().isoformat(),
             "duration_weeks": duration_weeks,
             "plan": plan

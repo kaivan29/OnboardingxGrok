@@ -22,4 +22,7 @@ ANALYSIS_CONFIG = {
     "include_patterns": ["*.py", "*.js", "*.ts", "*.jsx", "*.tsx"],
     "exclude_patterns": ["**/node_modules/**", "**/__pycache__/**", "**/.git/**"],
     "max_file_size": 100000,  # 100KB
+    # Whether to generate separate analyses for junior and senior engineers
+    "generate_for_levels": ["junior", "senior"],
 }
+
