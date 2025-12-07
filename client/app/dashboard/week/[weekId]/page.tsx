@@ -40,7 +40,7 @@ export default function WeekPage() {
             </main>
 
             {/* Right Sidebar - Weekly Tasks */}
-            <WeeklyTasksSidebar tasks={weekContent.tasks} />
+            <WeeklyTasksSidebar weekId={weekId} tasks={weekContent.tasks} />
           </div>
         </SidebarInset>
       </SidebarProvider>

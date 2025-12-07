@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,11 +15,17 @@ import { TaskCard } from "./TaskCard";
 import { WeeklyTask } from "@/lib/data/week-content";
 
 interface WeeklyTasksSidebarProps {
+  weekId: number;
   tasks: WeeklyTask[];
 }
 
-export function WeeklyTasksSidebar({ tasks }: WeeklyTasksSidebarProps) {
+export function WeeklyTasksSidebar({ weekId, tasks }: WeeklyTasksSidebarProps) {
+  const router = useRouter();
   const [selectedTask, setSelectedTask] = useState<WeeklyTask | null>(null);
+
+  const handleQuizClick = () => {
+    router.push(`/dashboard/week/${weekId}/quiz`);
+  };
 
   return (
     <>
@@ -39,7 +46,10 @@ export function WeeklyTasksSidebar({ tasks }: WeeklyTasksSidebarProps) {
           </div>
         )}
 
-        <Button className="w-full mt-6 bg-black text-white hover:bg-gray-800">
+        <Button 
+          onClick={handleQuizClick}
+          className="w-full mt-6 bg-black text-white hover:bg-gray-800"
+        >
           Weekly Quiz
         </Button>
       </aside>
@@ -74,3 +84,4 @@ export function WeeklyTasksSidebar({ tasks }: WeeklyTasksSidebarProps) {
     </>
   );
 }
+
