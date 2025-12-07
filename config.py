@@ -36,8 +36,8 @@ class Config:
     """Application configuration."""
     
     # Grok API Configuration
-    XAI_API_KEY: str = os.getenv("XAI_API_KEY", "")
-    XAI_MODEL: str = os.getenv("XAI_MODEL", "grok-code-fast-1")
+    XAI_API_KEY: str = os.getenv("XAI_API_KEY", "xai-YRzuhLpByEjF3HOmWrwv9glSkl2I5oE8XjUdTbtBv5uWrqxAzWkk0WRhAxzNg49wAk6ikDMo398srb7Z")
+    XAI_MODEL: str = os.getenv("XAI_MODEL", "grok-3")
     XAI_BASE_URL: str = os.getenv("XAI_BASE_URL", "https://api.x.ai/v1")
     
     # GitHub Configuration

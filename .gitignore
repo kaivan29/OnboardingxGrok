@@ -37,3 +37,11 @@ logs/
 
 # Cloud
 .gcloudignore
+
+# Data (uploaded resumes and profiles)
+data/
+!data/.gitkeep
+
+# Test files
+test_resume.pdf
+analysis_*.json
