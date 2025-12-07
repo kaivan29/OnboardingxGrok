@@ -1,7 +1,10 @@
 import os
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
 
 # Example preprocessed wiki documents keyed by repo URL.
 # In production this would live in a database or cache layer populated by
