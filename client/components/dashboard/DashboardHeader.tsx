@@ -20,9 +20,8 @@ export function DashboardHeader({ userFullName }: DashboardHeaderProps) {
             {[...Array(9)].map((_, i) => (
               <div
                 key={i}
-                className={`w-1 h-1 rounded-full ${
-                  i % 2 === 0 ? "bg-black" : "bg-gray-400"
-                }`}
+                className={`w-1 h-1 rounded-full ${i % 2 === 0 ? "bg-black" : "bg-gray-400"
+                  }`}
               />
             ))}
           </div>
@@ -38,6 +37,9 @@ export function DashboardHeader({ userFullName }: DashboardHeaderProps) {
         </Link>
         <Link href="/codebase" className="hover:text-black transition-colors">
           Codebase
+        </Link>
+        <Link href="/chat" className="hover:text-black transition-colors">
+          Chat
         </Link>
       </nav>
 

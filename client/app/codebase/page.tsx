@@ -16,9 +16,8 @@ export default function CodebasePage() {
               {[...Array(9)].map((_, i) => (
                 <div
                   key={i}
-                  className={`w-1 h-1 rounded-full ${
-                    i % 2 === 0 ? "bg-black" : "bg-gray-400"
-                  }`}
+                  className={`w-1 h-1 rounded-full ${i % 2 === 0 ? "bg-black" : "bg-gray-400"
+                    }`}
                 />
               ))}
             </div>
@@ -34,6 +33,9 @@ export default function CodebasePage() {
           </Link>
           <Link href="/codebase" className="text-black">
             Codebase
+          </Link>
+          <Link href="/chat" className="hover:text-black transition-colors">
+            Chat
           </Link>
         </nav>
 

@@ -58,7 +58,7 @@ export const onboardingApi = {
     formData.append("repo_url", "https://github.com/facebook/rocksdb");
     formData.append("generate_plan", "true");
 
-    const response = await api.post<UploadResponse>("/analyzeResume", formData, {
+    const response = await api.post<UploadResponse>("/api/analyzeResume", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;

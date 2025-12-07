@@ -33,13 +33,14 @@ import json
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PyPDF2 import PdfReader
 from openai import OpenAI
+from pydantic import BaseModel
 
 from config import Config
 
@@ -216,6 +217,122 @@ Return ONLY the JSON object, no additional text."""
     except Exception as e:
         raise ValueError(f"Failed to analyze resume with Grok: {str(e)}")
 
+
+# Chat Endpoints
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    message: str
+    history: List[ChatMessage] = []
+
+class ChatResponse(BaseModel):
+    response: str
+
+# Cache for codebase context (loaded once, reused for all chat requests)
+_codebase_context_cache = None
+
+def get_codebase_context() -> str:
+    """Load and cache codebase context for chat."""
+    global _codebase_context_cache
+    
+    if _codebase_context_cache is not None:
+        return _codebase_context_cache
+    
+    # Load the most recent codebase analysis
+    data_dir = Path("data/codebase_analyses")
+    context = "No codebase analysis available yet."
+    
+    if data_dir.exists():
+        analysis_files = sorted(data_dir.glob("*.json"), reverse=True)
+        if analysis_files:
+            try:
+                with open(analysis_files[0], 'r', encoding='utf-8') as f:
+                    codebase_data = json.load(f)
+                    
+                    summary = codebase_data.get('summary', {})
+                    repo_url = codebase_data.get('repo_url', 'Unknown')
+                    
+                    context = f"""Repository: {repo_url}
+Technologies: {', '.join(summary.get('technologies', []))}
+Key Components: {', '.join(summary.get('key_components', []))}
+Description: {summary.get('description', 'No description available')}"""
+                    
+                    # Add chapter titles if available
+                    chapters = codebase_data.get('chapters', [])
+                    if chapters:
+                        context += "\n\nMain Topics:\n"
+                        for chapter in chapters[:5]:  # First 5 chapters
+                            context += f"- {chapter.get('title', 'Unknown')}\n"
+            except Exception as e:
+                print(f"Error loading codebase context: {e}")
+    
+    _codebase_context_cache = context
+    return context
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat_with_codebase(request: ChatRequest):
+    """
+    Fast chat endpoint for asking questions about the codebase.
+    Uses cached context and direct chat_completion for speed.
+    """
+    try:
+        # Initialize Grok client
+        from utils.grok_client import GrokClient
+        grok_client = GrokClient()
+        
+        # Get cached codebase context
+        codebase_context = get_codebase_context()
+        
+        # Build conversation messages
+        messages = [
+            {
+                "role": "system",
+                "content": f"""You are a helpful AI assistant for developers learning a codebase.
+
+Codebase Information:
+{codebase_context}
+
+Instructions:
+- Keep answers brief and concise (2-3 sentences) unless the user asks for details
+- Reference specific technologies and components from the codebase when relevant
+- Be helpful and friendly
+- If asked for a detailed explanation, provide more depth"""
+            }
+        ]
+        
+        # Add conversation history (last 5 messages)
+        for msg in request.history[-5:]:
+            messages.append({
+                "role": msg.role,
+                "content": msg.content
+            })
+        
+        # Add current question
+        messages.append({
+            "role": "user",
+            "content": request.message
+        })
+        
+        # Call Grok API using fast chat_completion
+        response = await grok_client.chat_completion(messages, temperature=0.7)
+        
+        # Extract response text
+        response_text = response['choices'][0]['message']['content']
+        
+        # Close client
+        await grok_client.close()
+        
+        return ChatResponse(response=response_text)
+        
+    except Exception as e:
+        # Log the actual error for debugging
+        print(f"Chat error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 
 # Resume Analysis Endpoints
 
