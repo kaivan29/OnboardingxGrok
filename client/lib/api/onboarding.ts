@@ -2,10 +2,35 @@ import { api } from "@/lib/api-client";
 
 // Types
 export interface UploadResponse {
-  id: string;
-  fileName: string;
-  status: "pending" | "processing" | "completed" | "failed";
-  message?: string;
+  success: boolean;
+  profile_id: string;
+  message: string;
+  is_duplicate: boolean;
+  analysis: {
+    candidate_name: string;
+    experience_years: number;
+    education: any[];
+    technical_skills: {
+      languages: string[];
+      frameworks: string[];
+      tools: string[];
+      databases: string[];
+    };
+    experience_summary: any[];
+    strengths: string[];
+    knowledge_gaps: string[];
+    recommended_learning_path: string[];
+  };
+  study_plan?: {
+    success: boolean;
+    profile_id: string;
+    repo_url: string;
+    plan_id: string;
+    duration_weeks: number;
+    plan: {
+      weeks: any[];
+    };
+  };
 }
 
 export interface ProcessingStatus {
@@ -25,28 +50,18 @@ export const onboardingApi = {
   /**
    * Upload resume file
    * @param file - The resume file to upload
-   * @returns Upload response with file ID and status
+   * @returns Upload response with profile analysis and study plan
    */
   uploadResume: async (file: File): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("resume", file);
+    formData.append("repo_url", "https://github.com/facebook/rocksdb");
+    formData.append("generate_plan", "true");
 
-    // TODO: Replace with actual API endpoint
-    // const response = await api.post<UploadResponse>("/onboarding/upload", formData, {
     const response = await api.post<UploadResponse>("/analyzeResume", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
-
-    // Placeholder: Simulate API response
-    console.log("📤 Uploading resume:", file.name);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return {
-      id: `upload_${Date.now()}`,
-      fileName: file.name,
-      status: "processing",
-      message: "Resume uploaded successfully",
-    };
   },
 
   /**

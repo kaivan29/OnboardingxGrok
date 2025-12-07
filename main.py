@@ -86,6 +86,7 @@ app.add_middleware(
 # Import and initialize background scheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from services.codebase_scheduler import scheduler_instance, scheduled_analysis_job
+from services.study_plan_generator import get_generator
 from config_repos import ANALYSIS_SCHEDULE
 
 # Create scheduler
@@ -221,13 +222,17 @@ Return ONLY the JSON object, no additional text."""
 @app.post("/api/analyzeResume")
 async def analyze_resume(
     resume: UploadFile = File(...),
-    candidate_email: Optional[str] = Form(None)
+    candidate_email: Optional[str] = Form(None),
+    repo_url: Optional[str] = Form("https://github.com/facebook/rocksdb"),
+    generate_plan: bool = Form(True)
 ):
     """
     Upload and analyze a resume PDF using Grok API.
+    Automatically generates a personalized study plan if generate_plan=True.
+    Uses file hash to avoid duplicate analysis.
     
     Returns:
-        JSON with analysis results and profile_id
+        JSON with analysis results, profile_id, and optionally study plan
     """
     # Validate file type
     if not allowed_file(resume.filename):
@@ -244,9 +249,58 @@ async def analyze_resume(
         )
     
     try:
-        # Generate unique ID for this profile
+        # Generate file hash to detect duplicates
+        file_hash = hashlib.sha256(contents).hexdigest()[:16]
+        
+        # Check if this exact file has been analyzed before
+        existing_profile = None
+        for profile_file in ANALYZED_FOLDER.glob("*.json"):
+            try:
+                with open(profile_file, 'r') as f:
+                    profile_data = json.load(f)
+                    if profile_data.get("file_hash") == file_hash:
+                        existing_profile = profile_data
+                        print(f"📋 Found existing analysis for this resume (hash: {file_hash})")
+                        break
+            except Exception:
+                continue
+        
+        # If we found existing analysis, return it (with optional new study plan)
+        if existing_profile:
+            profile_id = existing_profile["profile_id"]
+            
+            # Generate new study plan if requested
+            study_plan = None
+            if generate_plan and repo_url:
+                try:
+                    generator = get_generator()
+                    plan_result = await generator.generate_study_plan(
+                        profile_id=profile_id,
+                        repo_url=repo_url,
+                        duration_weeks=4,
+                        use_ai=True
+                    )
+                    study_plan = plan_result
+                    print(f"✅ Generated new study plan for existing profile")
+                except Exception as e:
+                    print(f"⚠️  Failed to generate study plan: {e}")
+            
+            response = {
+                "success": True,
+                "profile_id": profile_id,
+                "message": "Using existing resume analysis (duplicate detected)",
+                "is_duplicate": True,
+                "analysis": existing_profile["analysis"]
+            }
+            
+            if study_plan:
+                response["study_plan"] = study_plan
+            
+            return response
+        
+        # New analysis needed
         timestamp = datetime.now().isoformat()
-        profile_id = hashlib.md5(f"{candidate_email}{timestamp}".encode()).hexdigest()[:12]
+        profile_id = hashlib.md5(f"{file_hash}{timestamp}".encode()).hexdigest()[:12]
         
         # Save uploaded PDF
         resume_path = UPLOAD_FOLDER / f"{profile_id}_{resume.filename}"
@@ -268,6 +322,7 @@ async def analyze_resume(
         # Add metadata
         profile_data = {
             "profile_id": profile_id,
+            "file_hash": file_hash,
             "candidate_email": candidate_email or "unknown",
             "uploaded_at": timestamp,
             "resume_filename": resume.filename,
@@ -279,13 +334,35 @@ async def analyze_resume(
         with open(analysis_path, 'w') as f:
             json.dump(profile_data, f, indent=2)
         
-        # Return analysis
-        return {
+        # Generate study plan if requested
+        study_plan = None
+        if generate_plan and repo_url:
+            try:
+                generator = get_generator()
+                plan_result = await generator.generate_study_plan(
+                    profile_id=profile_id,
+                    repo_url=repo_url,
+                    duration_weeks=4,
+                    use_ai=True
+                )
+                study_plan = plan_result
+                print(f"✅ Generated study plan automatically")
+            except Exception as e:
+                print(f"⚠️  Failed to generate study plan: {e}")
+        
+        # Build response
+        response = {
             "success": True,
             "profile_id": profile_id,
             "message": "Resume analyzed successfully",
+            "is_duplicate": False,
             "analysis": analysis
         }
+        
+        if study_plan:
+            response["study_plan"] = study_plan
+        
+        return response
         
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -294,6 +371,7 @@ async def analyze_resume(
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
+
 
 
 @app.get("/api/getProfile/{profile_id}")
@@ -321,6 +399,73 @@ async def get_profile(profile_id: str):
             status_code=500,
             detail=f"Failed to load profile: {str(e)}"
         )
+
+
+@app.get("/api/getStudyPlan/{profile_id}")
+async def get_study_plan_by_profile(profile_id: str):
+    """
+    Get the latest study plan for a profile.
+    
+    Args:
+        profile_id: The unique profile identifier
+    
+    Returns:
+        Latest study plan for this profile
+    """
+    plans_dir = Path("data/study_plans")
+    
+    # Find all plans for this profile
+    pattern = f"{profile_id}_*.json"
+    plans = sorted(plans_dir.glob(pattern), reverse=True)
+    
+    if not plans:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No study plan found for profile: {profile_id}"
+        )
+    
+    # Return the most recent plan
+    try:
+        with open(plans[0], 'r') as f:
+            plan_data = json.load(f)
+        return plan_data
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load study plan: {str(e)}"
+        )
+
+
+@app.get("/api/getStudyPlanById/{plan_id}")
+async def get_study_plan_by_id(plan_id: str):
+    """
+    Get a specific study plan by its ID.
+    
+    Args:
+        plan_id: The unique plan identifier
+    
+    Returns:
+        Study plan data
+    """
+    plans_dir = Path("data/study_plans")
+    plan_path = plans_dir / f"{plan_id}.json"
+    
+    if not plan_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Study plan not found: {plan_id}"
+        )
+    
+    try:
+        with open(plan_path, 'r') as f:
+            plan_data = json.load(f)
+        return plan_data
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load study plan: {str(e)}"
+        )
+
 
 
 # Legacy endpoint for backward compatibility
@@ -450,6 +595,45 @@ async def get_latest_codebase_analysis(repo_url: str):
     }
 
 
+
+
+@app.post("/api/generateStudyPlan")
+async def generate_study_plan(
+    profile_id: str = Form(...),
+    repo_url: str = Form(...),
+    duration_weeks: int = Form(4),
+    use_ai: bool = Form(True)
+):
+    """
+    Generate a personalized study plan based on user profile and codebase analysis.
+    
+    Args:
+        profile_id: User profile ID from resume analysis
+        repo_url: Repository URL for the codebase
+        duration_weeks: Number of weeks for the plan (default 4)
+        use_ai: Whether to use AI generation (default True)
+    
+    Returns:
+        Personalized study plan in week-content.ts format
+    """
+    try:
+        generator = get_generator()
+        result = await generator.generate_study_plan(
+            profile_id=profile_id,
+            repo_url=repo_url,
+            duration_weeks=duration_weeks,
+            use_ai=use_ai
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate study plan: {str(e)}"
+        )
+
+
 @app.post("/api/codebases/trigger")
 async def trigger_codebase_analysis():
     """
@@ -479,7 +663,8 @@ async def root():
         "features": {
             "codebase_analysis": "POST /api/analyze - Analyze codebases with Grok",
             "resume_analysis": "POST /api/analyzeResume - Analyze resumes for onboarding",
-            "profile_retrieval": "GET /api/getProfile/{id} - Get analyzed profiles"
+            "profile_retrieval": "GET /api/getProfile/{id} - Get analyzed profiles",
+            "study_plan_generation": "POST /api/generateStudyPlan - Generate personalized study plans"
         },
         "docs": "/docs",
         "health": "/health"

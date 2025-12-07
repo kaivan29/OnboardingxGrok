@@ -154,7 +154,7 @@ https://onboarding-wiki-api-197454585336.us-central1.run.app/docs
    - Added all CORS and middleware configuration
 
 3. **`config.py`**
-   - Added Grok API key: `xai-YRzuhLpByEjF3HOmWrwv9glSkl2I5oE8XjUdTbtBv5uWrqxAzWkk0WRhAxzNg49wAk6ikDMo398srb7Z`
+   - Added Grok API configuration from environment variables
    - Updated model to `grok-3` (latest)
 
 4. **`Dockerfile`**

@@ -1,0 +1,198 @@
+{
+  "success": true,
+  "profile_id": "a15738300dde",
+  "repo_url": "https://github.com/facebook/rocksdb",
+  "generated_at": "2025-12-07T03:27:47.731678",
+  "duration_weeks": 4,
+  "plan": {
+    "weeks": [
+      {
+        "weekId": 1,
+        "title": "Foundations & Setup",
+        "status": "start",
+        "overview": "# Overview\n\nWelcome to your personalized onboarding plan, Elon Musk! This week focuses on getting you set up and reviewing fundamental concepts.\n\nBased on your resume analysis, we've identified some areas to strengthen before diving deep into the codebase.\n\n## Key takeaways\n\n- Set up your development environment\n- Review foundational concepts\n- Get familiar with the codebase structure\n- Complete your first code review",
+        "chapters": [
+          {
+            "id": "environment-setup",
+            "title": "Environment Setup",
+            "content": "# Environment Setup\n\nSetting up your development environment is the first critical step in your onboarding journey.\n\n## Prerequisites\n\nBefore you begin, ensure you have the necessary tools installed on your system.\n\n## Installation Steps\n\nFollow these steps to get your environment ready for development.\n\n### Step 1: Clone the Repository\n\nClone the repository to your local machine and navigate to the project directory.\n\n### Step 2: Install Dependencies\n\nInstall all required dependencies using your package manager.\n\n### Step 3: Verify Installation\n\nRun the tests to ensure everything is working correctly.",
+            "subItems": [
+              {
+                "id": "prerequisites",
+                "title": "Prerequisites"
+              },
+              {
+                "id": "installation-steps",
+                "title": "Installation Steps"
+              },
+              {
+                "id": "verify-installation",
+                "title": "Verify Installation"
+              }
+            ]
+          },
+          {
+            "id": "codebase-overview",
+            "title": "Codebase Overview",
+            "content": "# Codebase Overview\n\nUnderstanding the structure and architecture of the codebase is essential for effective contribution.\n\n## Project Structure\n\nThis project uses Python, FastAPI, SQLAlchemy and follows industry best practices.\n\n## Key Components\n\nThe codebase is organized into several major components:\n\n- Main application logic\n- API endpoints\n- Data models\n- Utility functions\n\n## How to Navigate\n\nStart by exploring the main directories and familiarizing yourself with the project layout.",
+            "subItems": [
+              {
+                "id": "project-structure",
+                "title": "Project Structure"
+              },
+              {
+                "id": "key-components",
+                "title": "Key Components"
+              },
+              {
+                "id": "how-to-navigate",
+                "title": "How to Navigate"
+              }
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "id": "task-1-1",
+            "title": "Complete Environment Setup",
+            "description": "Set up your local development environment following the setup guide. Verify that you can run the project locally and all tests pass.",
+            "assignedBy": "Onboarding Team",
+            "timeAgo": "1 hr ago",
+            "progress": 0
+          },
+          {
+            "id": "task-1-2",
+            "title": "Explore Codebase Structure",
+            "description": "Navigate through the codebase and document the main directories and their purposes. Create a personal reference guide.",
+            "assignedBy": "Onboarding Team",
+            "timeAgo": "1 hr ago",
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "weekId": 2,
+        "title": "Core Concepts",
+        "status": "locked",
+        "overview": "# Overview\n\nThis week focuses on understanding the core concepts and patterns used in the codebase.\n\n## Key takeaways\n\n- Understand the architecture patterns\n- Learn the data flow\n- Study the key algorithms\n- Practice code review",
+        "chapters": [
+          {
+            "id": "getting-started",
+            "title": "Getting Started",
+            "content": "Introduction to facebook_rocksdb codebase",
+            "subItems": [
+              {
+                "id": "setup",
+                "title": "Setup"
+              },
+              {
+                "id": "architecture-overview",
+                "title": "Architecture Overview"
+              }
+            ]
+          },
+          {
+            "id": "core-concepts",
+            "title": "Core Concepts",
+            "content": "Understanding the fundamental concepts",
+            "subItems": [
+              {
+                "id": "data-models",
+                "title": "Data Models"
+              },
+              {
+                "id": "business-logic",
+                "title": "Business Logic"
+              }
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "id": "task-2-1",
+            "title": "Study Core Architecture",
+            "description": "Review the core architecture documentation and diagram the main data flow. Present your understanding to your mentor.",
+            "assignedBy": "Technical Lead",
+            "timeAgo": "1 day ago",
+            "progress": 0
+          },
+          {
+            "id": "task-2-2",
+            "title": "Fix a Starter Bug",
+            "description": "Pick a 'good first issue' from the issue tracker and submit a pull request. This will help you understand the contribution workflow.",
+            "assignedBy": "Technical Lead",
+            "timeAgo": "1 day ago",
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "weekId": 3,
+        "title": "Advanced Topics",
+        "status": "locked",
+        "overview": "# Overview\n\nThis week addresses your identified knowledge gaps and dives into advanced topics.\n\n## Areas of Focus\n\nBased on your profile, we're focusing on:\n- Limited experience in scalable backend infrastructure and distributed systems\n- Basic knowledge of cloud platforms (AWS) and containerization (Docker)\n- Learning Go, indicating limited proficiency in systems-level programming languages\n\n## Key takeaways\n\n- Master advanced concepts\n- Apply patterns to real problems\n- Build confidence with complex features",
+        "chapters": [
+          {
+            "id": "api-reference",
+            "title": "API Reference",
+            "content": "Complete API documentation",
+            "subItems": [
+              {
+                "id": "endpoints",
+                "title": "Endpoints"
+              }
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "id": "task-3-1",
+            "title": "Implement a Feature",
+            "description": "Implement a small feature end-to-end. This should include writing tests, documentation, and getting code review approval.",
+            "assignedBy": "Tech Lead",
+            "timeAgo": "3 days ago",
+            "progress": 0
+          }
+        ]
+      },
+      {
+        "weekId": 4,
+        "title": "Summary & Next Steps",
+        "status": "locked",
+        "overview": "# Overview\n\nCongratulations on reaching the final week! This week focuses on consolidating your learning and planning your continued growth.\n\n## Key takeaways\n\n- Review all concepts learned\n- Identify areas for continued growth\n- Set goals for the coming months\n- Celebrate your progress!",
+        "chapters": [
+          {
+            "id": "onboarding-review",
+            "title": "Onboarding Review",
+            "content": "# Onboarding Review\n\nLet's reflect on your journey over the past few weeks.\n\n## What You've Accomplished\n\nReview all the skills and knowledge you've gained during your onboarding.\n\n## Feedback Session\n\nSchedule a feedback session with your mentor to discuss your progress.\n\n## Next Steps\n\nSet concrete goals for your first 90 days and beyond.",
+            "subItems": [
+              {
+                "id": "accomplishments",
+                "title": "What You've Accomplished"
+              },
+              {
+                "id": "feedback-session",
+                "title": "Feedback Session"
+              },
+              {
+                "id": "next-steps",
+                "title": "Next Steps"
+              }
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "id": "task-4-1",
+            "title": "Complete Onboarding Survey",
+            "description": "Provide feedback on your onboarding experience to help us improve the process for future hires.",
+            "assignedBy": "People Ops",
+            "timeAgo": "1 week ago",
+            "progress": 0
+          }
+        ]
+      }
+    ]
+  },
+  "plan_id": "a15738300dde_rocksdb_20251207_032747"
+}
