@@ -16,23 +16,14 @@ export const Header = () => {
         </span>
       </div>
 
-      <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-        <Link href="#" className="hover:text-black transition-colors">
-          About Us
-        </Link>
-        <Link href="#" className="hover:text-black transition-colors">
-          Security
-        </Link>
-        <Link href="#" className="hover:text-black transition-colors">
-          Careers
-        </Link>
-      </nav>
 
-      <Button
-        className="rounded-full bg-black text-white hover:bg-gray-800 px-6"
-      >
-        Speak with us
-      </Button>
+      <Link href="/onboarding">
+        <Button
+          className="rounded-full px-6"
+        >
+          Onboard with us!
+        </Button>
+      </Link>
     </header>
   );
 }

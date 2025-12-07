@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Brain, Code2, GitBranch, Terminal } from "lucide-react";
+import Link from "next/link";
 
 export function Hero() {
   return (
@@ -15,12 +16,14 @@ export function Hero() {
           Grokboard understands your codebase so your team doesn't have to.
         </p>
         <div className="flex items-center gap-4">
-          <Button
-            className="rounded-full group"
-          >
-            Onboard with Grokboard
-            <ArrowUpRight className="ml-2 h-6 w-6 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Button>
+          <Link href="/onboarding">
+            <Button
+              className="rounded-full group"
+            >
+              Onboard with Grokboard
+              <ArrowUpRight className="ml-2 h-6 w-6 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Button>
+          </Link>
         </div>
       </div>
 
