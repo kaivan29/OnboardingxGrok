@@ -2,7 +2,7 @@
 
 Prototype Flask backend for onboarding wiki generation.
 
-## Setup
+## Setup (local)
 1. Create a virtualenv (optional) and install dependencies:
    ```bash
    pip install -r requirements.txt
@@ -69,3 +69,29 @@ The schema is designed so frontend can render:
 - Module catalog with risk callouts
 - Ops readiness (metrics + runbooks)
 - Getting started and FAQ
+
+## Deploy to Vercel (serverless)
+This repository is configured for Vercel Python functions via `vercel-wsgi`.
+
+1. Ensure `vercel.json`, `api/index.py`, and `requirements.txt` are present (already committed).
+2. Install Vercel CLI:
+   ```bash
+   npm install -g vercel
+   ```
+3. Log in:
+   ```bash
+   vercel login
+   ```
+4. Deploy from the repo root (first time: accept prompts; set project root to current dir):
+   ```bash
+   vercel         # preview
+   vercel --prod  # production
+   ```
+5. Test the endpoint:
+   ```bash
+   curl "https://<your-project>.vercel.app/api/getCodeBaseSummary?codebase_url=https://github.com/facebook/rocksdb"
+   ```
+
+Notes:
+- Vercel functions are stateless and short-lived—suited for the current read-only API.
+- For long-running indexing jobs, use a separate worker on a container host (Fly/Cloud Run/etc.) and keep this endpoint as the read layer.
