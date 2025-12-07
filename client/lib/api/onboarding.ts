@@ -32,10 +32,11 @@ export const onboardingApi = {
     formData.append("resume", file);
 
     // TODO: Replace with actual API endpoint
-    // const response = await api.post<UploadResponse>("/api/onboarding/upload", formData, {
-    //   headers: { "Content-Type": "multipart/form-data" },
-    // });
-    // return response.data;
+    // const response = await api.post<UploadResponse>("/onboarding/upload", formData, {
+    const response = await api.post<UploadResponse>("/analyzeResume", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
 
     // Placeholder: Simulate API response
     console.log("📤 Uploading resume:", file.name);
