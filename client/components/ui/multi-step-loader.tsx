@@ -94,11 +94,13 @@ export const MultiStepLoader = ({
   loading,
   duration = 2000,
   loop = true,
+  onComplete,
 }: {
   loadingStates: LoadingState[];
   loading?: boolean;
   duration?: number;
   loop?: boolean;
+  onComplete?: () => void;
 }) => {
   const [currentState, setCurrentState] = useState(0);
 
@@ -108,17 +110,27 @@ export const MultiStepLoader = ({
       return;
     }
     const timeout = setTimeout(() => {
-      setCurrentState((prevState) =>
-        loop
-          ? prevState === loadingStates.length - 1
+      setCurrentState((prevState) => {
+        const isLastStep = prevState === loadingStates.length - 1;
+        
+        if (isLastStep && !loop) {
+          // Call onComplete after a brief delay to show the final step
+          setTimeout(() => {
+            onComplete?.();
+          }, duration);
+          return prevState;
+        }
+        
+        return loop
+          ? isLastStep
             ? 0
             : prevState + 1
-          : Math.min(prevState + 1, loadingStates.length - 1)
-      );
+          : Math.min(prevState + 1, loadingStates.length - 1);
+      });
     }, duration);
 
     return () => clearTimeout(timeout);
-  }, [currentState, loading, loop, loadingStates.length, duration]);
+  }, [currentState, loading, loop, loadingStates.length, duration, onComplete]);
 
   return (
     <AnimatePresence mode="wait">

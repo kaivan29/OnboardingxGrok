@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { FileUpload } from "@/components/ui/file-upload";
 import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 import { IconSquareRoundedX } from "@tabler/icons-react";
@@ -18,6 +19,7 @@ const loadingStates = [
 ];
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
 
@@ -33,9 +35,6 @@ export default function OnboardingPage() {
 
       // Start the loader animation
       setLoading(true);
-
-      // TODO: Poll for status updates or use WebSocket for real-time updates
-      // For now, the multi-step loader will animate through all steps
     } catch (err) {
       console.error("Upload failed:", err);
       toast.error("Failed to upload resume. Please try again.");
@@ -46,6 +45,11 @@ export default function OnboardingPage() {
   const handleClose = useCallback(() => {
     setLoading(false);
   }, []);
+
+  const handleLoaderComplete = useCallback(() => {
+    setLoading(false);
+    router.push("/dashboard");
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -99,6 +103,7 @@ export default function OnboardingPage() {
         loading={loading}
         duration={2000}
         loop={false}
+        onComplete={handleLoaderComplete}
       />
 
       {/* Close Button */}
