@@ -1,7 +1,7 @@
+import os
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
-
 
 # Example preprocessed wiki documents keyed by repo URL.
 # In production this would live in a database or cache layer populated by
@@ -165,7 +165,7 @@ PREPROCESSED_WIKIS = {
             ],
             "sample_usage": (
                 "DB* db; Options opts; opts.create_if_missing = true; "
-                "Status s = DB::Open(opts, \"/tmp/testdb\", &db);"
+                'Status s = DB::Open(opts, "/tmp/testdb", &db);'
             ),
         },
         "faq": [
@@ -184,14 +184,6 @@ PREPROCESSED_WIKIS = {
 
 @app.get("/api/getCodeBaseSummary")
 def get_code_base_summary():
-    """
-    Fetch a preprocessed wiki page for a repository URL.
-
-    Query params:
-        codebase_url: canonical repository URL, e.g. https://github.com/facebook/rocksdb
-    Response:
-        JSON matching the wiki schema below.
-    """
     codebase_url = request.args.get("codebase_url")
     if not codebase_url:
         return jsonify({"error": "missing codebase_url"}), 400
@@ -203,5 +195,11 @@ def get_code_base_summary():
     return jsonify({"wiki": wiki})
 
 
+@app.get("/")
+def health():
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", "8080"))
+    app.run(host="0.0.0.0", port=port, debug=True)

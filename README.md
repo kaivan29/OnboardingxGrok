@@ -1,15 +1,19 @@
 # Onboarding-x-Grok
 
-Prototype Flask backend for onboarding wiki generation.
+Next.js frontend scaffold + Flask API for onboarding wiki generation.
 
-## Setup (local)
-1. Create a virtualenv (optional) and install dependencies:
+## Setup (local, Flask API)
+1. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-2. Run the service:
+2. Run the dev server:
    ```bash
-   flask --app app run --debug
+   python app.py
+   ```
+3. Hit the API:
+   ```bash
+   curl "http://localhost:8080/api/getCodeBaseSummary?codebase_url=https://github.com/facebook/rocksdb"
    ```
 
 ## API
@@ -70,28 +74,31 @@ The schema is designed so frontend can render:
 - Ops readiness (metrics + runbooks)
 - Getting started and FAQ
 
-## Deploy to Vercel (serverless)
-This repository is configured for Vercel Python functions via `vercel-wsgi`.
+## Deploy to Google Cloud Run (Flask API)
+This repo includes a `Dockerfile` for the Flask API. Cloud Run will build and run it with Gunicorn.
 
-1. Ensure `vercel.json`, `api/index.py`, and `requirements.txt` are present (already committed).
-2. Install Vercel CLI:
+1. Install and init gcloud (once):
    ```bash
-   npm install -g vercel
+   gcloud auth login
+   gcloud auth configure-docker
+   gcloud config set project <YOUR_PROJECT_ID>
+   gcloud config set run/region us-central1
+   gcloud services enable run.googleapis.com artifactregistry.googleapis.com
    ```
-3. Log in:
+2. Deploy directly from source (Cloud Build will use the Dockerfile):
    ```bash
-   vercel login
+   gcloud run deploy wiki-api --source . --allow-unauthenticated
    ```
-4. Deploy from the repo root (first time: accept prompts; set project root to current dir):
+   The command prints the service URL when finished.
+3. Test:
    ```bash
-   vercel         # preview
-   vercel --prod  # production
-   ```
-5. Test the endpoint:
-   ```bash
-   curl "https://<your-project>.vercel.app/api/getCodeBaseSummary?codebase_url=https://github.com/facebook/rocksdb"
+   curl "<SERVICE_URL>/api/getCodeBaseSummary?codebase_url=https://github.com/facebook/rocksdb"
    ```
 
 Notes:
-- Vercel functions are stateless and short-lived—suited for the current read-only API.
-- For long-running indexing jobs, use a separate worker on a container host (Fly/Cloud Run/etc.) and keep this endpoint as the read layer.
+- The Flask API is stateless and read-only; swap out `PREPROCESSED_WIKIS` in `app.py` for a real datastore.
+- If you prefer manual build + deploy:
+   ```bash
+   gcloud builds submit --tag gcr.io/$GOOGLE_CLOUD_PROJECT/wiki-api
+   gcloud run deploy wiki-api --image gcr.io/$GOOGLE_CLOUD_PROJECT/wiki-api --allow-unauthenticated
+   ```
