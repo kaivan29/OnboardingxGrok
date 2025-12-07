@@ -33,7 +33,7 @@ This API provides preprocessed wiki documentation for GitHub repositories, inclu
 
 2. **Run the development server**:
    ```bash
-   python app.py
+   python -m src.app
    ```
 
    The API will start on `http://localhost:8080`
@@ -285,12 +285,19 @@ gcloud run services delete onboarding-wiki-api --region us-central1
 
 ```
 .
-├── app.py                 # Main Flask application
-├── requirements.txt       # Python dependencies
-├── Dockerfile            # Container configuration
-├── .gcloudignore        # Files to ignore during deployment
-├── .gitignore           # Git ignore rules
-└── README.md            # This file
+├── src/                   # Source code
+│   ├── __init__.py       # Package initialization
+│   └── app.py            # Main Flask application
+├── docs/                  # Documentation
+│   ├── DEPLOYMENT.md     # Google Cloud Run deployment guide
+│   ├── SCHEMA.md         # API schema documentation
+│   └── QUICKSTART.md     # Quick start guide
+├── deploy.sh             # Deployment script
+├── requirements.txt      # Python dependencies
+├── Dockerfile           # Container configuration
+├── .gcloudignore       # Files to ignore during deployment
+├── .gitignore          # Git ignore rules
+└── README.md           # This file
 ```
 
 ## Development Roadmap

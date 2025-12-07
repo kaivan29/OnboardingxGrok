@@ -11,7 +11,7 @@ pip install -r requirements.txt
 
 ### 2. Run the Server
 ```bash
-python app.py
+python -m src.app
 ```
 
 Server starts at `http://localhost:8080`
@@ -147,7 +147,7 @@ The API returns a comprehensive wiki with:
 lsof -ti:8080 | xargs kill -9
 
 # Or use a different port
-PORT=8000 python app.py
+PORT=8000 python -m src.app
 ```
 
 ### Import errors
@@ -172,15 +172,19 @@ gcloud run logs tail onboarding-wiki-api --region us-central1
 
 ```
 Onboarding-x-Grok/
-├── app.py                 # Flask application
-├── requirements.txt       # Python dependencies
-├── Dockerfile            # Container config
-├── README.md             # Full documentation
-├── SCHEMA.md             # API schema reference
-├── DEPLOYMENT.md         # Cloud Run deployment guide
-├── QUICKSTART.md         # This file
-├── .gitignore           # Git ignore rules
-└── .gcloudignore        # Cloud deployment ignore rules
+├── src/                   # Source code
+│   ├── __init__.py       # Package initialization
+│   └── app.py            # Flask application
+├── docs/                  # Documentation
+│   ├── DEPLOYMENT.md     # Cloud Run deployment guide
+│   ├── SCHEMA.md         # API schema reference
+│   └── QUICKSTART.md     # This file
+├── deploy.sh             # Deployment script
+├── requirements.txt      # Python dependencies
+├── Dockerfile           # Container config
+├── README.md            # Full documentation
+├── .gitignore          # Git ignore rules
+└── .gcloudignore       # Cloud deployment ignore rules
 ```
 
 ---
