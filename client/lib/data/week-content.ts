@@ -28,6 +28,7 @@ export type WeeklyTask = {
 export type WeekContent = {
   weekId: number;
   title: string;
+  goal?: string; // Week goal from Grok curriculum
   status: ModuleStatus;
   overview: string; // Markdown string for week overview page
   chapters: Chapter[];

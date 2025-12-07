@@ -16,6 +16,10 @@ A unified FastAPI platform for personalized engineer onboarding, combining AI-po
 - Generate comprehensive code documentation
 - Create knowledge graphs and visualizations
 - Build structured tutorials for new hires
+- **NEW**: Experience-level-based analysis (junior vs senior)
+  - Automatically detects new hire's experience level from resume
+  - Generates tailored content using configurable LLM prompts
+  - Separate analyses for junior (0-3 years) and senior (3+ years) engineers
 
 ### 3. Profile Management
 - Store and retrieve candidate profiles
@@ -107,6 +111,8 @@ gcloud run deploy onboarding-wiki-api \
 Onboarding-x-Grok/
 ├── main.py                 # FastAPI application entry point
 ├── config.py              # Configuration (API keys, models)
+├── config_repos.py        # Codebase analysis configuration
+├── config_prompts.py      # Analysis prompts configuration
 ├── requirements.txt       # Python dependencies
 ├── Dockerfile            # Container configuration
 ├── deploy.sh             # Deployment script
@@ -119,6 +125,8 @@ Onboarding-x-Grok/
 │
 ├── services/              # Business logic
 │   ├── codebase_analyzer.py
+│   ├── codebase_scheduler.py  # Periodic analysis jobs
+│   ├── study_plan_generator.py
 │   ├── tutorial_generator.py
 │   └── visualization_generator.py
 │
@@ -140,8 +148,14 @@ Onboarding-x-Grok/
 ├── client/                # Next.js frontend (separate)
 │
 └── data/                  # Runtime data storage (gitignored)
+    ├── analysis_prompts/  # LLM prompts for codebase analysis
+    │   ├── README.md      # Prompts documentation
+    │   ├── junior_engineer_prompt.md
+    │   └── senior_engineer_prompt.md
     ├── resumes/          # Uploaded PDFs
-    └── analyzed_profiles/ # Analysis results
+    ├── analyzed_profiles/ # Resume analysis results
+    ├── codebase_analyses/ # Stored codebase analyses
+    └── study_plans/      # Generated study plans
 ```
 
 ## 📚 API Documentation

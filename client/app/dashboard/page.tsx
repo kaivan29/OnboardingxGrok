@@ -1,63 +1,113 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Brain, Code2, GitBranch } from "lucide-react";
 import {
   WeeklyModuleCard,
   ModuleStatus,
 } from "@/components/dashboard/WeeklyModuleCard";
-import { api } from "@/lib/api-client";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { onboardingApi, StudyPlan, UserProfile } from "@/lib/api/onboarding";
+import { toast } from "sonner";
 
-// Sample module data - in production, this would come from API
-const weeklyModules: { week: number; title: string; status: ModuleStatus }[] = [
-  { week: 1, title: "Foundations & Setup", status: "completed" },
-  { week: 2, title: "Data Structures", status: "continue" },
-  { week: 3, title: "Algorithms", status: "start" },
-  { week: 4, title: "Summary", status: "locked" },
-];
+interface Week {
+  weekId: number;
+  title: string;
+  description: string;
+  chapters: any[];
+  tasks: any[];
+}
 
 export default function DashboardPage() {
-  const userFullName = "Alex Chen";
-  const userFirstName = userFullName.split(" ")[0] ?? userFullName;
-  const courseProgress = 45;
-  const tasksDue = 3;
-
-  const [modules, setModules] = useState<typeof weeklyModules>([]);
+  const router = useRouter();
+  const [userFullName, setUserFullName] = useState("User");
+  const [modules, setModules] = useState<{ week: number; title: string; status: ModuleStatus }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [courseProgress, setCourseProgress] = useState(0);
+  const [tasksDue, setTasksDue] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchModules() {
+    async function loadDashboardData() {
       setLoading(true);
       setError(null);
 
       try {
-        // Mocked API call using the shared api client; replace adapter with real endpoint later.
-        const response = await api.get<typeof weeklyModules>(
-          "/weekly-modules",
-          {
-            adapter: async (config) =>
-              Promise.resolve({
-                data: weeklyModules,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config,
-              }),
+        // Get stored IDs from localStorage
+        const profileId = localStorage.getItem('profile_id');
+        const planId = localStorage.getItem('plan_id');
+
+        if (!profileId && !planId) {
+          // No profile found, redirect to onboarding
+          toast.error("Please upload your resume first");
+          router.push("/onboarding");
+          return;
+        }
+
+        // Fetch user profile to get name
+        if (profileId) {
+          try {
+            const profile: UserProfile = await onboardingApi.getProfile(profileId);
+            if (!cancelled && profile.analysis?.candidate_name) {
+              setUserFullName(profile.analysis.candidate_name);
+            }
+          } catch (err) {
+            console.error("Failed to load profile:", err);
           }
-        );
+        }
+
+        // Fetch study plan
+        const studyPlan: StudyPlan = await onboardingApi.getStudyPlan({
+          profile_id: profileId || undefined,
+          plan_id: planId || undefined,
+        });
 
         if (!cancelled) {
-          setModules(response.data);
+          // Convert study plan weeks to module format
+          const moduleData = studyPlan.plan.weeks.map((week: Week, index: number) => {
+            // Determine status based on week number
+            let status: ModuleStatus;
+            if (index === 0) {
+              status = "continue"; // First week is current
+            } else if (index < studyPlan.plan.weeks.length - 1) {
+              status = "start"; // Middle weeks
+            } else {
+              status = "locked"; // Last week
+            }
+
+            return {
+              week: week.weekId,
+              title: week.title,
+              status,
+            };
+          });
+
+          setModules(moduleData);
+
+          // Calculate progress (first week = in progress)
+          const progressPercent = Math.round((1 / studyPlan.plan.weeks.length) * 30);
+          setCourseProgress(progressPercent);
+
+          // Count tasks from first week
+          if (studyPlan.plan.weeks.length > 0) {
+            setTasksDue(studyPlan.plan.weeks[0].tasks.length);
+          }
         }
-      } catch (err) {
+      } catch (err: any) {
         if (!cancelled) {
-          setError("Unable to load modules. Please try again.");
-          console.error("Failed to load weekly modules", err);
+          console.error("Failed to load dashboard data:", err);
+          const errorMsg = err.response?.data?.detail || err.message || "Failed to load your study plan";
+          setError(errorMsg);
+          toast.error(errorMsg);
+
+          // If profile/plan not found, redirect to onboarding
+          if (err.response?.status === 404) {
+            setTimeout(() => router.push("/onboarding"), 2000);
+          }
         }
       } finally {
         if (!cancelled) {
@@ -66,11 +116,13 @@ export default function DashboardPage() {
       }
     }
 
-    fetchModules();
+    loadDashboardData();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
+
+  const userFirstName = userFullName.split(" ")[0] ?? userFullName;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -141,7 +193,7 @@ export default function DashboardPage() {
           </h2>
 
           {loading && (
-            <p className="text-sm text-gray-600 mb-4">Loading modules...</p>
+            <p className="text-sm text-gray-600 mb-4">Loading your personalized study plan...</p>
           )}
           {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 

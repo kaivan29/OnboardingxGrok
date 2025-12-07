@@ -41,6 +41,7 @@ logs/
 # Data (uploaded resumes and profiles)
 data/
 !data/.gitkeep
+!data/analysis_prompts/
 
 # Test files
 test_resume.pdf
