@@ -115,10 +115,10 @@ export const onboardingApi = {
    */
   getStudyPlan: async (params: { profile_id?: string; plan_id?: string }): Promise<StudyPlan> => {
     if (params.plan_id) {
-      const response = await api.get<StudyPlan>(`/getStudyPlan/${params.plan_id}`);
+      const response = await api.get<StudyPlan>(`/api/getStudyPlan/${params.plan_id}`);
       return response.data;
     } else if (params.profile_id) {
-      const response = await api.get<StudyPlan>(`/getStudyPlanByProfile/${params.profile_id}`);
+      const response = await api.get<StudyPlan>(`/api/getStudyPlanByProfile/${params.profile_id}`);
       return response.data;
     }
     throw new Error("Either profile_id or plan_id must be provided");
@@ -130,7 +130,7 @@ export const onboardingApi = {
    * @returns User profile with analysis
    */
   getProfile: async (profile_id: string): Promise<UserProfile> => {
-    const response = await api.get<UserProfile>(`/getProfile/${profile_id}`);
+    const response = await api.get<UserProfile>(`/api/getProfile/${profile_id}`);
     return response.data;
   }
 };

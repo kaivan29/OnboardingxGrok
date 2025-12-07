@@ -3,20 +3,20 @@ Codebase Analysis Scheduler
 ============================
 
 Purpose:
-    Runs periodic background jobs to analyze configured codebases and store
-    the results for later use in personalized onboarding plans.
+    Runs periodic background jobs to analyze configured codebases using Grok AI
+    and stores the results for use in personalized onboarding plans.
 
 Key Responsibilities:
     - Schedule daily analysis jobs
-    - Analyze configured repositories
+    - Analyze configured repositories with Grok API
     - Store analysis results in JSON files
     - Manage analysis lifecycle
 
 Design:
     - Uses APScheduler for job scheduling
     - Analyses stored in data/codebase_analyses/
-    - Mock data used until real analysis is implemented
-    - Results include: summary, chapters, knowledge graph
+    - Uses Grok AI (grok-3 model) for comprehensive curriculum generation
+    - Results include: summary, 4-week curriculum, chapters, knowledge graph
 
 Storage Format:
     data/codebase_analyses/
@@ -24,6 +24,7 @@ Storage Format:
         ├── repo_url
         ├── analyzed_at
         ├── summary
+        ├── curriculum (Grok-generated 4-week plan)
         ├── chapters
         ├── knowledge_graph
         └── metadata
@@ -85,12 +86,8 @@ class CodebaseAnalysisScheduler:
         
         # Clone and analyze repository
         try:
-            # TODO: Implement actual repo cloning and file reading
-            # For now, we'll simulate codebase content
-            # In production, you would:
-            # 1. Clone the repo to a temp directory
-            # 2. Read key files (*.cpp, *.h for RocksDB, etc.)
-            # 3. Extract file structure, key classes, functions
+            # NOTE: Currently uses hardcoded repo structure info from _get_codebase_info()
+            # Future enhancement: Clone repo and analyze actual file structure dynamically
             
             codebase_info = self._get_codebase_info(repo_url, repo_name)
             
@@ -421,8 +418,8 @@ Return ONLY valid JSON, no markdown code blocks, no additional text.
         """
         Generate codebase structure information for Grok analysis.
         
-        TODO: In production, this should actually clone and analyze the repo.
-        For now, provides known information about common repos.
+        Returns hardcoded structure for known repos (RocksDB) or generic template.
+        Future enhancement: Clone and analyze repos dynamically.
         """
         # Hardcoded info for RocksDB (can be extended for other repos)
         if "rocksdb" in repo_url.lower():
@@ -497,131 +494,6 @@ Return ONLY valid JSON, no markdown code blocks, no additional text.
             return f"{parts[-2]}_{parts[-1]}".replace('.git', '')
         return hashlib.md5(repo_url.encode()).hexdigest()[:12]
     
-    def _create_mock_analysis(
-        self,
-        repo_url: str,
-        repo_name: str,
-        timestamp: datetime,
-        experience_level: str = "junior",
-        prompt_template: str = None
-    ) -> Dict[str, Any]:
-        """
-        Create mock analysis data for testing.
-        
-        Args:
-            repo_url: Repository URL
-            repo_name: Repository name
-            timestamp: Analysis timestamp
-            experience_level: "junior" or "senior"
-            prompt_template: The prompt template used for analysis
-        
-        TODO: Replace with real analysis from services.codebase_analyzer
-        """
-        # Customize content based on experience level
-        difficulty = "beginner-friendly" if experience_level == "junior" else "advanced"
-        focus = "fundamentals and hands-on tasks" if experience_level == "junior" else "architecture and ownership"
-        
-        return {
-            "repo_url": repo_url,
-            "analyzed_at": timestamp.isoformat(),
-            "experience_level": experience_level,
-            "prompt_used": prompt_template[:200] + "..." if prompt_template and len(prompt_template) > 200 else prompt_template,
-            "summary": {
-                "overview": f"Mock {experience_level} analysis for {repo_name}",
-                "purpose": f"This is a placeholder {experience_level}-level analysis. Focus: {focus}",
-                "key_components": [
-                    "Main application logic",
-                    "API endpoints",
-                    "Data models",
-                    "Utility functions"
-                ],
-                "technologies": ["Python", "FastAPI", "SQLAlchemy"],
-                "difficulty_level": difficulty
-            },
-            "chapters": [
-                {
-                    "title": "Getting Started" if experience_level == "junior" else "Architecture Deep Dive",
-                    "order": 1,
-                    "content": f"Introduction to {repo_name} codebase for {experience_level} engineers",
-                    "sections": [
-                        {
-                            "heading": "Setup" if experience_level == "junior" else "System Design Principles",
-                            "content": "Development environment setup" if experience_level == "junior" else "Core architectural patterns and trade-offs"
-                        },
-                        {
-                            "heading": "Architecture Overview" if experience_level == "junior" else "Critical Invariants",
-                            "content": "High-level architecture" if experience_level == "junior" else "System invariants that must not be violated"
-                        }
-                    ]
-                },
-                {
-                    "title": "Core Concepts" if experience_level == "junior" else "Ownership Areas",
-                    "order": 2,
-                    "content": "Understanding the fundamental concepts" if experience_level == "junior" else "Critical subsystems requiring senior ownership",
-                    "sections": [
-                        {
-                            "heading": "Data Models" if experience_level == "junior" else "Compaction & Performance",
-                            "content": "Core data structures" if experience_level == "junior" else "Advanced compaction strategies and tuning"
-                        },
-                        {
-                            "heading": "Business Logic" if experience_level == "junior" else "Concurrency & Correctness",
-                            "content": "Main workflows" if experience_level == "junior" else "Advanced concurrency patterns and correctness guarantees"
-                        }
-                    ]
-                },
-                {
-                    "title": "Hands-on Tasks" if experience_level == "junior" else "High-Impact Projects",
-                    "order": 3,
-                    "content": "Practical learning exercises" if experience_level == "junior" else "Strategic improvements requiring deep expertise",
-                    "sections": [
-                        {
-                            "heading": "First Tasks" if experience_level == "junior" else "Performance Optimization",
-                            "content": "Safe, guided tasks for learning" if experience_level == "junior" else "Profile and optimize critical paths"
-                        }
-                    ]
-                }
-            ],
-            "knowledge_graph": {
-                "nodes": [
-                    {
-                        "id": "main_app",
-                        "label": "Main Application",
-                        "type": "module"
-                    },
-                    {
-                        "id": "api_routes",
-                        "label": "API Routes",
-                        "type": "module"
-                    },
-                    {
-                        "id": "models",
-                        "label": "Data Models",
-                        "type": "module"
-                    }
-                ],
-                "edges": [
-                    {
-                        "source": "main_app",
-                        "target": "api_routes",
-                        "relationship": "imports"
-                    },
-                    {
-                        "source": "api_routes",
-                        "target": "models",
-                        "relationship": "uses"
-                    }
-                ]
-            },
-            "metadata": {
-                "repo_name": repo_name,
-                "analysis_version": "2.0",
-                "experience_level": experience_level,
-                "is_mock": True,
-                "has_prompt": prompt_template is not None,
-                "files_analyzed": 42,
-                "total_lines": 15000
-            }
-        }
 
 
 # Global scheduler instance

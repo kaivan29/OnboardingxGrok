@@ -589,11 +589,17 @@ async def get_study_plan_by_profile(profile_id: str):
 @app.get("/api/getCodeBaseSummary")
 async def get_code_base_summary(codebase_url: str):
     """
-    Legacy endpoint - now returns real stored analysis data.
+    ⚠️ DEPRECATED: This endpoint is deprecated and may be removed in a future version.
     
-    For the latest analysis, use: GET /api/codebases/repo/latest?repo_url={url}
-    For all analyses, use: GET /api/codebases
+    Please use the modern endpoints instead:
+    - GET /api/codebases/repo/latest?repo_url={url} - Get latest analysis
+    - GET /api/codebases - List all analyses
+    - POST /api/codebases/trigger - Trigger new analysis
+    
+    Legacy endpoint - returns real stored analysis data or fallback.
     """
+    logger.warning(f"⚠️ Deprecated endpoint /api/getCodeBaseSummary called for: {codebase_url}")
+    
     if not codebase_url:
         raise HTTPException(status_code=400, detail="missing codebase_url")
     

@@ -12,16 +12,20 @@ export interface QuizOption {
 
 export interface QuizQuestion {
   id: string;
-  questionNumber: number;
+  questionNumber?: number;
   type: QuestionType;
-  question: string;
+  question?: string;  // For backward compatibility with old format
+  text?: string;      // For new format from backend
   options?: QuizOption[]; // Only for multiple_choice
+  correctAnswer?: string; // The correct answer (e.g., "A", "B", etc.)
+  explanation?: string;   // Explanation of the correct answer
 }
 
 export interface Quiz {
   id: string;
   weekId: number;
   title: string;
+  description?: string; // Optional description of the quiz
   questions: QuizQuestion[];
 }
 

@@ -67,14 +67,38 @@ export default function QuizPage() {
               weekId: weekId,
               title: `Week ${weekId} Quiz`,
               description: `Test your knowledge of ${week.title}`,
-              questions: week.quiz.map((q: any, index: number) => ({
-                id: `q${index + 1}`,
-                type: "multiple_choice" as const,
-                text: q.question,
-                options: q.options || [],
-                correctAnswer: q.correct_answer,
-                explanation: q.explanation,
-              })),
+              questions: week.quiz.map((q: any, index: number) => {
+                // Parse options from backend format "A. Option text" to QuizOption format
+                const parsedOptions = q.options?.map((opt: string) => {
+                  // Extract label (e.g., "A") and text from format "A. Option text"
+                  const match = opt.match(/^([A-Z])\.\s*(.+)$/);
+                  if (match) {
+                    const [, label, text] = match;
+                    return {
+                      id: `q${index + 1}-${label.toLowerCase()}`,
+                      label: label,
+                      text: text.trim(),
+                    };
+                  }
+                  // Fallback if format doesn't match
+                  return {
+                    id: `q${index + 1}-opt${opt.charAt(0)}`,
+                    label: opt.charAt(0),
+                    text: opt,
+                  };
+                }) || [];
+
+                return {
+                  id: `q${index + 1}`,
+                  questionNumber: index + 1,
+                  type: "multiple_choice" as const,
+                  text: q.question,
+                  question: q.question,  // For backward compatibility
+                  options: parsedOptions,
+                  correctAnswer: q.correct_answer,
+                  explanation: q.explanation,
+                };
+              }),
             };
 
             console.log("✅ Loaded quiz with", quizData.questions.length, "questions");
