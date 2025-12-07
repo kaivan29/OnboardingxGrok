@@ -36,14 +36,8 @@ export function DashboardHeader({ userFullName }: DashboardHeaderProps) {
         <Link href="/dashboard" className="text-black">
           Dashboard
         </Link>
-        <Link href="#" className="hover:text-black transition-colors">
-          Courses
-        </Link>
-        <Link href="#" className="hover:text-black transition-colors">
-          Progress
-        </Link>
-        <Link href="#" className="hover:text-black transition-colors">
-          Community
+        <Link href="/codebase" className="hover:text-black transition-colors">
+          Codebase
         </Link>
       </nav>
 
