@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ChevronDown, Brain, Code2, GitBranch } from "lucide-react";
 import { WeeklyModuleCard, ModuleStatus } from "@/components/dashboard/WeeklyModuleCard";
+import { api } from "@/lib/api-client";
 
 // Sample module data - in production, this would come from API
 const weeklyModules: { week: number; title: string; status: ModuleStatus }[] = [
@@ -18,6 +20,51 @@ export default function DashboardPage() {
   const userName = "Alex";
   const courseProgress = 45;
   const tasksDue = 3;
+
+  const [modules, setModules] = useState<typeof weeklyModules>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchModules() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Mocked API call using the shared api client; replace adapter with real endpoint later.
+        const response = await api.get<typeof weeklyModules>("/weekly-modules", {
+          adapter: async (config) =>
+            Promise.resolve({
+              data: weeklyModules,
+              status: 200,
+              statusText: "OK",
+              headers: {},
+              config,
+            }),
+        });
+
+        if (!cancelled) {
+          setModules(response.data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError("Unable to load modules. Please try again.");
+          console.error("Failed to load weekly modules", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchModules();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -113,8 +160,15 @@ export default function DashboardPage() {
             Your Weekly Modules
           </h2>
 
+          {loading && (
+            <p className="text-sm text-gray-600 mb-4">Loading modules...</p>
+          )}
+          {error && (
+            <p className="text-sm text-red-600 mb-4">{error}</p>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {weeklyModules.map((module) => (
+            {modules.map((module) => (
               <WeeklyModuleCard
                 key={module.week}
                 week={module.week}
