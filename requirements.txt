@@ -1,7 +1,15 @@
+# Flask dependencies (production - src/app.py)
+Flask==3.0.0
+Flask-CORS==4.0.0
+gunicorn==21.2.0
+
+# FastAPI dependencies (development - main.py)
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 httpx==0.25.2
 pydantic==2.5.0
+
+# Shared dependencies
 python-dotenv==1.0.0
 pyyaml==6.0.1
 networkx==3.2.1
@@ -9,4 +17,3 @@ graphviz==0.20.1
 # pygraphviz==1.11  # Optional - requires C++ build tools on Windows
 gitpython==3.1.40
 aiofiles==23.2.1
-

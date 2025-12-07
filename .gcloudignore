@@ -1,0 +1,16 @@
+.git
+.gitignore
+node_modules
+.next
+.vercel
+*.log
+*.md
+.DS_Store
+__pycache__/
+.pytest_cache/
+.venv/
+env/
+venv/
+build/
+dist/
+*.egg-info/
