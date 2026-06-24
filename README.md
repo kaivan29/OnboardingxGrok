@@ -19,5 +19,4 @@ Product Use case: Building the brain/knowledge graph for team specific codebase,
 - **Deployment**: Google Cloud Run
 - **Frontend**: Next.js (in `client/` directory)
 
-<img width="1388" height="801" alt="Screenshot 2026-06-24 at 1 34 48 PM" src="https://github.com/user-attachments/assets/33fb1f3e-da62-4484-9f19-b9fb5fc6b712" />
-
+<img width="853" height="533" alt="Screenshot 2026-06-24 at 1 21 54 PM" src="https://github.com/user-attachments/assets/eb1d7305-d10f-4369-9195-322a1f7cb5f1" />
