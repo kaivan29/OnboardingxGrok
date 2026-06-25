@@ -30,6 +30,7 @@ Endpoints:
 """
 import os
 import json
+import asyncio
 import hashlib
 from datetime import datetime
 from pathlib import Path
@@ -108,9 +109,12 @@ async def startup_event():
     """Start the background scheduler when the app starts."""
     scheduler.start()
     print("✅ Background scheduler started - codebase analysis will run daily")
-    # Run once on startup for testing (comment out in production)
-    print("🔄 Running initial codebase analysis...")
-    await scheduled_analysis_job()
+    # Never block startup on the analysis job: awaiting it here delays
+    # readiness and fails platform healthchecks (e.g. Railway). When opted in,
+    # run it as a background task so the server can start serving immediately.
+    if os.environ.get("RUN_INITIAL_ANALYSIS", "").lower() in ("1", "true", "yes"):
+        print("🔄 Scheduling initial codebase analysis in the background...")
+        asyncio.create_task(scheduled_analysis_job())
 
 # Shutdown event to stop scheduler
 @app.on_event("shutdown")
