@@ -781,6 +781,22 @@ async def trigger_codebase_analysis():
         )
 
 
+@app.get("/health")
+async def health():
+    """
+    Health check endpoint.
+
+    Defined directly on the app (not on the optional codebase-analysis router)
+    so the platform healthcheck always succeeds even if that router fails to
+    import. Reports whether the codebase-analysis features loaded.
+    """
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "codebase_analysis": HAS_CODEBASE_ANALYSIS,
+    }
+
+
 @app.get("/")
 async def root():
     """Root endpoint with API information."""
